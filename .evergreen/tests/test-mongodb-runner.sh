@@ -16,12 +16,14 @@ pushd $SCRIPT_DIR/.. > /dev/null
 function connect_mongodb() {
   local use_tls=false
   local use_auth=false
+  local eval_cmd='db.runCommand({"ping":1})'
 
   # Parse flags
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --ssl) use_tls=true; shift ;;
       --auth) use_auth=true; shift ;;
+      --eval-cmd) eval_cmd="$2"; shift 2 ;;
       *) echo "Unknown option: $1"; return 1 ;;
     esac
   done
@@ -37,7 +39,7 @@ function connect_mongodb() {
   fi
   echo "Connecting to server..."
   # shellcheck disable=SC2068
-  $MONGODB_BINARIES/mongosh "$URI" ${TLS_OPTS[@]:-} --eval "db.runCommand({\"ping\":1})"
+  $MONGODB_BINARIES/mongosh "$URI" ${TLS_OPTS[@]:-} --eval "$eval_cmd"
   echo "Connecting to server... done."
 }
 
@@ -57,7 +59,7 @@ connect_mongodb --ssl
 # Verify that auth is enforced when starting with AUTH=auth SSL=yes.
 # An unauthenticated connection must be rejected, and an authenticated one must succeed.
 AUTH=auth SSL=yes bash ./run-mongodb.sh start
-if connect_mongodb --ssl 2>/dev/null; then
+if connect_mongodb --ssl --eval-cmd 'db.adminCommand({listDatabases:1})' 2>/dev/null; then
   echo "ERROR: unauthenticated connection should have been rejected on an auth+ssl server"
   exit 1
 fi
