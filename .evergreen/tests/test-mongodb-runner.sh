@@ -48,13 +48,13 @@ bash ./run-mongodb.sh start
 connect_mongodb
 
 bash ./run-mongodb.sh start --topology standalone --auth
-connect_mongodb
+connect_mongodb --auth
 
 bash ./run-mongodb.sh start --version 7.0 --topology replica_set --ssl
 connect_mongodb --ssl
 
 bash ./run-mongodb.sh start --version latest --topology sharded_cluster --auth --ssl
-connect_mongodb --ssl
+connect_mongodb --ssl --auth
 
 # Verify that auth is enforced when starting with AUTH=auth SSL=yes.
 # An unauthenticated connection must be rejected, and an authenticated one must succeed.
